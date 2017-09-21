@@ -37,7 +37,7 @@ var multiPolygons;
 function preload(){
   img = loadImage(myMap.imgUrl);
   // A geoJSON file with world coordinates for all countries.
-  data = loadJSON('world.geojson');
+  data = loadJSON('data/world.geojson');
 }
 
 function setup(){
