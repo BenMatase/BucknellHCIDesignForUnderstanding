@@ -45,8 +45,7 @@ function setup(){
   // Load all polygons and multipolygons in a geoJSON file in two arrays.
   polygons = myMap.geoJSON(data, 'Polygon');
   multiPolygons = myMap.geoJSON(data, 'MultiPolygon');
-  countries = myMap.geoJSON(data, 'Feature');
-  alert(countries[0][2]);  
+  console.log(data);  
 
   // Display the static map image.
   image(img, 0, 0);
