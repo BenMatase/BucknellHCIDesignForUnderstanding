@@ -45,33 +45,71 @@ function setup(){
   // Load all polygons and multipolygons in a geoJSON file in two arrays.
   polygons = myMap.geoJSON(data, 'Polygon');
   multiPolygons = myMap.geoJSON(data, 'MultiPolygon');
-  console.log(data);  
+	data["features"][0]["properties"]["color"] = 0;
+ console.log(data["features"]);
+ background(0);
 
-  // Display the static map image.
-  image(img, 0, 0);
+  // Displayi the static map image.
+  //image(img, 0, 0);
 
-  // For all polygons loop through the array and create a new Shape.
-  for(var i = 0; i < polygons.length; i++){
-    beginShape();
-    fill(random(colors));
-    for (var j = 0; j < polygons[i][0].length; j ++){
-      var pos = myMap.latLngToPixel(polygons[i][0][j][1], polygons[i][0][j][0]);
-      vertex(pos.x, pos.y);
-    }
-    endShape();
-  }
+  initializeAndDrawCountries(data["features"]);
 
-// For all multiPolygons loop through the array and create a new Shape.
-  for(var i = 0; i < multiPolygons.length; i++){
-    for(var k = 0; k < multiPolygons[i].length; k++){
-      beginShape();
-      fill(random(colors));
-      for (var j = 0; j < multiPolygons[i][k][0].length; j ++){
-        var pos = myMap.latLngToPixel(multiPolygons[i][k][0][j][1], multiPolygons[i][k][0][j][0]);
-        vertex(pos.x, pos.y);
-      }
-      endShape();
-    }
-  }
+  redrawCountries(['Afghanistan']);
 
 }
+
+function draw() {
+	for(date in dates) {
+		listOfCountries = getListOfCountries(date);
+		colorShapes(listOfCountries);
+	}
+}
+
+function initializeAndDrawCountries(countries) {
+	for (var i = 0; i < countries.length; i ++) {
+		countries[i]["properties"]["color"] = 0x000000;
+		draw(data['features'][i]['properties']['name']);
+	}
+}
+
+function redrawCountries(countries) {
+	for (var i = 0; i < data['features'].length; i ++) {
+		if(countries.includes(data['features'][i]['properties']['name'])) {
+			data['features'][i]['properties']['color'] += 0xff;
+			draw(data['features'][i]['properties']['name']);
+		}
+	}
+}
+
+function draw(countryName) {
+	for(var i = 0; i < data['features'].length; i ++) {
+		country = data['features'][i];
+		if(country['properties']['name'] === countryName) {
+			if(country['geometry']['type'] === 'Polygon') {
+				polygon = country['geometry']['coordinates'];
+				beginShape();
+				fill(country['properties']['color'], 0, 0);
+				for (var j = 0; j < polygon[0].length; j ++){
+					var pos = myMap.latLngToPixel(polygon[0][j][1], polygon[0][j][0]);
+					vertex(pos.x, pos.y);
+					}
+				endShape();
+			} else { //multi-polygon
+				multiPolygon = country['geometry']['coordinates'];
+				for(var k = 0; k < multiPolygon.length; k++){
+					beginShape();
+					fill(country['properties']['color'], 0, 0);
+					for (var j = 0; j < multiPolygon[k][0].length; j ++){
+						var pos = myMap.latLngToPixel(multiPolygon[k][0][j][1], multiPolygon[k][0][j][0]);
+						vertex(pos.x, pos.y);
+					}
+					endShape();
+				}
+			}
+		}
+	}
+}
+
+/*function numberToRed(num, max) {
+
+}*/
