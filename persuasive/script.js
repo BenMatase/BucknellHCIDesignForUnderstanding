@@ -31,6 +31,7 @@ var mappa = new Mappa('Google', key);
 var myMap = mappa.staticMap(options);
 
 var data;
+var table;
 var polygons;
 var multiPolygons;
 
@@ -54,8 +55,17 @@ function setup(){
 
   initializeAndDrawCountries(data["features"]);
 
-  redrawCountries(['Afghanistan']);
-
+//  redrawCountries(['Afghanistan']);
+var arr = [];
+table = loadTable("data/suicide_attacks.csv", "csv", "header");
+console.log(table.getColumnCount());
+console.log(table);
+for(var i = 0; i < table['rows'].length; i ++) {
+	console.log(table.getString(i, 8));
+	arr.push(table.getString(i, 8));
+}
+console.log(arr);
+redrawCountries(arr);
 }
 
 function draw() {
