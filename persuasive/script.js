@@ -46,6 +46,7 @@ var dateToEventMap = {};
 var startDate = new Date(1982, 0, 1);
 var currDate = new Date();
 var endDate = new Date(2015, 8, 28);
+var largestDeaths = 20000;
 
 function preload(){
   img = loadImage(myMap.imgUrl);
@@ -56,10 +57,9 @@ function preload(){
 
 function setup(){
 	canvas = createCanvas(HEIGHT, WIDTH);
-	// Load all polygons and multipolygons in a geoJSON file in two arrays.
 	background(0);
 
-	initializeCountries(data["features"]);
+	var countriesAttacked = [];
 
 	for(var i = 0; i < table.getRowCount(); i ++ ) {
 		var year = table.getRow(i).get("year");
@@ -72,6 +72,10 @@ function setup(){
 			fixedCountry = countryHashMissMap[fixedCountry];
 		}
 
+		if(!countriesAttacked.includes(fixedCountry)) {
+			countriesAttacked.push(fixedCountry);
+		}
+
 		var deaths = table.getRow(i).get("# killed");
 
 		if(Object.keys(dateToEventMap).includes(date.toString())) {
@@ -81,8 +85,8 @@ function setup(){
 		}
 	}
 
-	console.log(dateToEventMap);
-	
+	initializeCountries(data["features"], countriesAttacked);
+
 	for(var d = new Date(1982, 0, 1); d.toString() !== endDate.toString(); d.setDate(d.getDate() + 1)) {
 		if(!Object.keys(dateToEventMap).includes(d.toString())) {
 			dateToEventMap[d] = [];
@@ -93,38 +97,63 @@ function setup(){
 
 	currDate = new Date(1982, 0, 1);
 	console.log(currDate);
+	
 }
 
 
 function draw() {
 	currDate.setDate(currDate.getDate() + 1);
-	redrawCountries(dateToEventMap[currDate.toString()]);
+	attackCountries(dateToEventMap[currDate.toString()]);
+	redrawCountries();
 	console.log(currDate);
+
 }
 
-function initializeCountries(countries) {
+function initializeCountries(countries, countriesAttacked) {
 	for (var i = 0; i < countries.length; i ++) {
-		countries[i]["properties"]["color"] = 0x000000;
-		var name = countries[i]["properties"]["name"];
-		countryHashMap[name] = countries[i];
+		var name = fixCountryName(countries[i]["properties"]["name"]);
+		if(countriesAttacked.includes(name)) {
+			countryHashMap[name] = countries[i];
+			countryHashMap[name]['properties']['targetcolor'] = 0;
+			countryHashMap[name]['properties']['currentcolor'] = 0;
+		}
 	}
 }
 
-function redrawCountries(countries) {
+function attackCountries(countries) {
 	for(var i = 0; i < countries.length; i ++) {
 		var countryName = countries[i][0];
-		countryHashMap[countryName]['properties']['color'] += 0xff;
-		drawCountry(countryHashMap[countryName]['properties']['name']);
+		var numberKilled = countries[i][1];
+		countryHashMap[countryName]['properties']['targetcolor'] += scaleRed(numberKilled);
+		countryHashMap[countryName]['properties']['currentcolor'] = 255;
+	}
+}
+
+function redrawCountries() {
+	//stroke(111, 111, 111);
+	for(var i = 0; i < Object.keys(countryHashMap).length; i ++) {
+		countryName = Object.keys(countryHashMap)[i];
+		drawCountry(countryName);
+
+		//recalculate color
+		currentColor = countryHashMap[countryName]['properties']['currentcolor'];
+		targetColor = countryHashMap[countryName]['properties']['targetcolor'];
+		if(currentColor > targetColor) {
+			countryHashMap[countryName]['properties']['currentcolor'] = countryHashMap[countryName]['properties']['currentcolor'] - 5;
+		} else { //currentColor <= targetColor
+			countryHashMap[countryName]['properties']['currentcolor'] = targetColor;
+		}
 	}
 }
 
 function drawCountry(countryName) {
 	var country = countryHashMap[countryName];
+	var fillColor = country['properties']['currentcolor'];
 	
 	if(country['geometry']['type'] === 'Polygon') {
 		polygon = country['geometry']['coordinates'];
 		beginShape();
-		fill(country['properties']['color'], 0, 0);
+		fill(fillColor, 0, 0);
 		for (var j = 0; j < polygon[0].length; j ++){
 			var pos = myMap.latLngToPixel(polygon[0][j][1], polygon[0][j][0]);
 			vertex(pos.x, pos.y);
@@ -134,7 +163,7 @@ function drawCountry(countryName) {
 		multiPolygon = country['geometry']['coordinates'];
 		for(var k = 0; k < multiPolygon.length; k++){
 			beginShape();
-			fill(country['properties']['color'], 0, 0);
+			fill(fillColor, 0, 0);
 			for (var j = 0; j < multiPolygon[k][0].length; j ++){
 				var pos = myMap.latLngToPixel(multiPolygon[k][0][j][1], multiPolygon[k][0][j][0]);
 				vertex(pos.x, pos.y);
@@ -144,3 +173,16 @@ function drawCountry(countryName) {
 	}
 }
 
+function scaleRed(deaths) {
+	var scaledVal = 255 * deaths / largestDeaths;
+	return scaledVal;
+}
+
+function fixCountryName(name) {
+	var fixedCountry = name;
+	if(Object.keys(countryHashMissMap).includes(fixedCountry)) {
+		fixedCountry = countryHashMissMap[name];
+	}
+	return fixedCountry;
+	
+}
