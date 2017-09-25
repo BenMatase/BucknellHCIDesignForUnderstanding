@@ -27,46 +27,52 @@ var options = {
 
 var colors = ["#fff7fb", "#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", "#0570b0", "#045a8d", "#023858"];
 
+var countryHashMissMap = {"United States":"United States of America", "Tanzania":"United Republic of Tanzania", "Palestinian Territory, Occupied": "West Bank"}
+
 var mappa = new Mappa('Google', key);
 var myMap = mappa.staticMap(options);
 
 var data;
 var table;
+var arr = [];
 var polygons;
 var multiPolygons;
+var countryHashMap = {};
 
 function preload(){
   img = loadImage(myMap.imgUrl);
   // A geoJSON file with world coordinates for all countries.
   data = loadJSON('data/world.geojson');
+	table = loadTable("data/suicide_attacks.csv", "csv", "header");
 }
 
 function setup(){
-  canvas = createCanvas(640, 640);
-  // Load all polygons and multipolygons in a geoJSON file in two arrays.
-  polygons = myMap.geoJSON(data, 'Polygon');
-  multiPolygons = myMap.geoJSON(data, 'MultiPolygon');
+	canvas = createCanvas(640, 640);
+	// Load all polygons and multipolygons in a geoJSON file in two arrays.
+	polygons = myMap.geoJSON(data, 'Polygon');
+	multiPolygons = myMap.geoJSON(data, 'MultiPolygon');
 	data["features"][0]["properties"]["color"] = 0;
- console.log(data["features"]);
- background(0);
+	console.log(data["features"]);
+	background(0);
 
-  // Displayi the static map image.
-  //image(img, 0, 0);
+	initializeAndDrawCountries(data["features"]);
 
-  initializeAndDrawCountries(data["features"]);
-
-//  redrawCountries(['Afghanistan']);
-var arr = [];
-table = loadTable("data/suicide_attacks.csv", "csv", "header");
-console.log(table.getColumnCount());
-console.log(table);
-for(var i = 0; i < table['rows'].length; i ++) {
-	console.log(table.getString(i, 8));
-	arr.push(table.getString(i, 8));
+	//  redrawCountries(['Afghanistan']);
+	//console.log(table.getColumnCount());
+	//console.log(table);
+	for(var i = 0; i < table.getRowCount(); i ++) {
+		//console.log(table.getString(i, 8));
+		country = table.getRow(i).get(8);
+			var tempCountry = country;
+			if(Object.keys(countryHashMissMap).includes(country)) {
+				tempCountry = countryHashMissMap[country];
+			}
+			arr.push(tempCountry);
+	}
+	console.log(arr);
+	redrawCountries(arr);
 }
-console.log(arr);
-redrawCountries(arr);
-}
+
 
 function draw() {
 	for(date in dates) {
@@ -78,6 +84,8 @@ function draw() {
 function initializeAndDrawCountries(countries) {
 	for (var i = 0; i < countries.length; i ++) {
 		countries[i]["properties"]["color"] = 0x000000;
+		var name = countries[i]["properties"]["name"];
+		countryHashMap[name] = countries[i];
 		draw(data['features'][i]['properties']['name']);
 	}
 }
