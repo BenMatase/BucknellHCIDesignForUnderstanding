@@ -34,6 +34,8 @@ var countryHashMissMap = {"United States":"United States of America", "Tanzania"
 var mappa = new Mappa('Google', key);
 var myMap = mappa.staticMap(options);
 
+var cnv;
+
 var data;
 var dataMapped = {};
 var table;
@@ -57,7 +59,7 @@ function preload(){
 }
 
 function setup(){
-	canvas = createCanvas(HEIGHT, WIDTH);
+	cnv = createCanvas(HEIGHT, WIDTH);
 	background(0);
 
 	var countriesAttacked = [];
@@ -94,10 +96,9 @@ function setup(){
 		}
 	}
 
-	console.log(dateToEventMap);
+	//console.log(dateToEventMap);
 
 	currDate = new Date(2000, 0, 1);
-	console.log(currDate);
 
 	//code to download json file of import objects
 	/*
@@ -113,11 +114,16 @@ function setup(){
 
 
 function draw() {
+	background(0);
 	currDate.setDate(currDate.getDate() + 1);
 	attackCountries(dateToEventMap[currDate.toString()]);
 	stroke(111, 111, 111);
 	redrawCountries();
-	console.log(currDate);
+	fill(255);
+	textSize(25);
+	textAlign(RIGHT);
+	text(currDate.toISOString().substring(0,10), width*.95, height*.9);
+	//console.log(currDate);
 
 }
 
@@ -205,3 +211,4 @@ function fixCountryName(name) {
 	return fixedCountry;
 	
 }
+
