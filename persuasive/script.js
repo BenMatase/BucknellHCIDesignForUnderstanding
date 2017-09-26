@@ -93,19 +93,24 @@ function setup(){
 		}
 	}
 
-	console.log(dateToEventMap);
+	//console.log(dateToEventMap);
 
 	currDate = new Date(1982, 0, 1);
-	console.log(currDate);
+	//console.log(currDate);
 	
 }
 
 
 function draw() {
+	background(0);
 	currDate.setDate(currDate.getDate() + 1);
 	attackCountries(dateToEventMap[currDate.toString()]);
 	redrawCountries();
-	console.log(currDate);
+	fill(255);
+	textSize(25);
+	textAlign(RIGHT);
+	text(currDate.toISOString().substring(0,10), width*.95, height*.9);
+	//console.log(currDate);
 
 }
 
